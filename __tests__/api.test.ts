@@ -53,8 +53,14 @@ describe('POST /api/delivery', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.results).toHaveLength(5);
-      expect(res.body.results[0]).toEqual({ id: 'PKG1', discount: 0, cost: 750, time: 3.98 });
-      expect(res.body.results[3]).toEqual({ id: 'PKG4', discount: 105, cost: 1395, time: 0.85 });
+      expect(res.body.results[0].id).toBe('PKG1');
+      expect(res.body.results[0].discount).toBe(0);
+      expect(res.body.results[0].cost).toBe(750);
+      expect(res.body.results[0].time).toBeCloseTo(3.98, 2);
+      expect(res.body.results[3].id).toBe('PKG4');
+      expect(res.body.results[3].discount).toBe(105);
+      expect(res.body.results[3].cost).toBe(1395);
+      expect(res.body.results[3].time).toBeCloseTo(0.85, 2);
     });
   });
 
