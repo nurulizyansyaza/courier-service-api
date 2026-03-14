@@ -5,6 +5,8 @@ import {
   DEFAULT_CALC_OFFERS,
   toOfferArray,
 } from '@nurulizyansyaza/courier-service-core';
+import { validate, costSchema } from '../middleware/validation';
+import { calculationRateLimiter } from '../middleware/security';
 
 export const costRouter = Router();
 
@@ -13,13 +15,9 @@ export const costRouter = Router();
  * Body: { input: string } — multiline text (same format as CLI)
  * Returns: { results: [{ id, discount, cost }] }
  */
-costRouter.post('/', (req: Request, res: Response) => {
+costRouter.post('/', calculationRateLimiter, validate(costSchema), (req: Request, res: Response) => {
   try {
     const { input } = req.body;
-    if (!input || typeof input !== 'string') {
-      res.status(400).json({ error: 'Missing or invalid "input" field' });
-      return;
-    }
 
     const { baseCost, packages } = parseInputBlock(input, 'cost');
     const results = estimateCost(baseCost, packages, toOfferArray(DEFAULT_CALC_OFFERS));
