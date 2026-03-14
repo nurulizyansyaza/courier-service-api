@@ -38,6 +38,3 @@ export const calculationRateLimiter = rateLimit({
 
 // Request logging
 export const requestLogger: RequestHandler = morgan('short');
-
-// Request body size guard (rejects oversized payloads early)
-export const bodySizeLimit = 10 * 1024; // 10 KB

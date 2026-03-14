@@ -195,7 +195,7 @@ describe('POST /api/delivery (unit)', () => {
     expect(mockEstimateDetailedDelivery).not.toHaveBeenCalled();
   });
 
-  it('does NOT use detailed when detailed=0', async () => {
+  it('does NOT use detailed when detailed=false (boolean)', async () => {
     mockParseInputBlock.mockReturnValue({
       baseCost: 100,
       packages: [],
@@ -203,11 +203,17 @@ describe('POST /api/delivery (unit)', () => {
     } as any);
     mockEstimateDelivery.mockReturnValue([] as any);
 
-    const res = await request(app).post('/api/delivery').send({ input: 'valid', detailed: 0 });
+    const res = await request(app).post('/api/delivery').send({ input: 'valid', detailed: false });
 
     expect(res.status).toBe(200);
     expect(mockEstimateDelivery).toHaveBeenCalled();
     expect(mockEstimateDetailedDelivery).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid detailed value (number)', async () => {
+    const res = await request(app).post('/api/delivery').send({ input: 'valid', detailed: 0 });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBeDefined();
   });
 });
 

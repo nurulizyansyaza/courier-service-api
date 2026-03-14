@@ -74,7 +74,7 @@ All requests pass through:
 | **CORS** | Restricts origins to `localhost:5173` (Vite dev) and `localhost:3000` |
 | **Rate Limiter** | Global: 100 requests / 15 min. Calculation endpoints: 30 requests / min |
 | **Morgan** | HTTP request logging |
-| **Body Limit** | JSON body capped at 100kb |
+| **Body Limit** | JSON body capped at 10kb |
 | **Zod Validation** | Schema-based input validation on all POST endpoints |
 
 ## Testing

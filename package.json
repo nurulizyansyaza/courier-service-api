@@ -4,6 +4,9 @@
   "description": "REST API for Courier Service delivery cost and time estimation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",

@@ -60,8 +60,7 @@ deliveryRouter.post('/transit', calculationRateLimiter, validate(transitSchema),
   try {
     const { input, transitPackages } = req.body;
 
-    const transit: TransitPackageInput[] = Array.isArray(transitPackages) ? transitPackages : [];
-    const result = calculateDeliveryTimeWithTransit(input, transit, DEFAULT_CALC_OFFERS);
+    const result = calculateDeliveryTimeWithTransit(input, transitPackages as TransitPackageInput[], DEFAULT_CALC_OFFERS);
     res.json(result);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
