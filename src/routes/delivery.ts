@@ -8,6 +8,8 @@ import {
   toOfferArray,
   TransitPackageInput,
 } from '@nurulizyansyaza/courier-service-core';
+import { validate, deliverySchema, transitSchema } from '../middleware/validation';
+import { calculationRateLimiter } from '../middleware/security';
 
 export const deliveryRouter = Router();
 
@@ -16,13 +18,9 @@ export const deliveryRouter = Router();
  * Body: { input: string, detailed?: boolean }
  * Returns: { results: [...] }
  */
-deliveryRouter.post('/', (req: Request, res: Response) => {
+deliveryRouter.post('/', calculationRateLimiter, validate(deliverySchema), (req: Request, res: Response) => {
   try {
     const { input, detailed } = req.body;
-    if (!input || typeof input !== 'string') {
-      res.status(400).json({ error: 'Missing or invalid "input" field' });
-      return;
-    }
 
     const { baseCost, packages, vehicles } = parseInputBlock(input, 'time');
     if (!vehicles) {
@@ -58,13 +56,9 @@ deliveryRouter.post('/', (req: Request, res: Response) => {
  * Body: { input: string, transitPackages: TransitPackageInput[] }
  * Returns: TransitAwareResult
  */
-deliveryRouter.post('/transit', (req: Request, res: Response) => {
+deliveryRouter.post('/transit', calculationRateLimiter, validate(transitSchema), (req: Request, res: Response) => {
   try {
     const { input, transitPackages } = req.body;
-    if (!input || typeof input !== 'string') {
-      res.status(400).json({ error: 'Missing or invalid "input" field' });
-      return;
-    }
 
     const transit: TransitPackageInput[] = Array.isArray(transitPackages) ? transitPackages : [];
     const result = calculateDeliveryTimeWithTransit(input, transit, DEFAULT_CALC_OFFERS);

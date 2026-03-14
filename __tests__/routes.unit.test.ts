@@ -38,20 +38,26 @@ describe('POST /api/cost (unit)', () => {
   it('returns 400 when input is missing', async () => {
     const res = await request(app).post('/api/cost').send({});
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/Missing/i);
+    expect(res.body.error).toBeDefined();
     expect(mockParseInputBlock).not.toHaveBeenCalled();
   });
 
   it('returns 400 when input is not a string (number)', async () => {
     const res = await request(app).post('/api/cost').send({ input: 123 });
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/Missing/i);
+    expect(res.body.error).toBeDefined();
   });
 
   it('returns 400 when input is null', async () => {
     const res = await request(app).post('/api/cost').send({ input: null });
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/Missing/i);
+    expect(res.body.error).toBeDefined();
+  });
+
+  it('returns 400 when input is empty string', async () => {
+    const res = await request(app).post('/api/cost').send({ input: '' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBeDefined();
   });
 
   it('returns 200 with correctly mapped results on valid input', async () => {
@@ -108,7 +114,7 @@ describe('POST /api/delivery (unit)', () => {
   it('returns 400 when input is missing', async () => {
     const res = await request(app).post('/api/delivery').send({});
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/Missing/i);
+    expect(res.body.error).toBeDefined();
     expect(mockParseInputBlock).not.toHaveBeenCalled();
   });
 
@@ -211,7 +217,7 @@ describe('POST /api/delivery/transit (unit)', () => {
   it('returns 400 when input is missing', async () => {
     const res = await request(app).post('/api/delivery/transit').send({});
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/Missing/i);
+    expect(res.body.error).toBeDefined();
     expect(mockCalculateTransit).not.toHaveBeenCalled();
   });
 
@@ -252,5 +258,31 @@ describe('POST /api/delivery/transit (unit)', () => {
 
     expect(res.status).toBe(200);
     expect(mockCalculateTransit).toHaveBeenCalledWith('valid', pkgs, { MOCK: true });
+  });
+
+  it('returns 400 when transitPackages has invalid items', async () => {
+    const res = await request(app)
+      .post('/api/delivery/transit')
+      .send({ input: 'valid', transitPackages: [{ id: '', weight: -1 }] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBeDefined();
+  });
+});
+
+// ─── Security middleware ────────────────────────────────────────────────────
+
+describe('Security middleware', () => {
+  it('returns security headers from helmet', async () => {
+    const res = await request(app).get('/api/health');
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-frame-options']).toBeDefined();
+  });
+
+  it('returns CORS headers for allowed origin', async () => {
+    const res = await request(app)
+      .get('/api/health')
+      .set('Origin', 'http://localhost:5173');
+    expect(res.headers['access-control-allow-origin']).toBe('http://localhost:5173');
   });
 });
