@@ -45,7 +45,7 @@ describe('POST /api/cost', () => {
 
 describe('POST /api/delivery', () => {
   describe('Given valid delivery input', () => {
-    it('should return delivery results with time', async () => {
+    it('should return detailed delivery results', async () => {
       const input = '100 5\nPKG1 50 30 OFR001\nPKG2 75 125 OFR008\nPKG3 175 100 OFR003\nPKG4 110 60 OFR002\nPKG5 155 95 NA\n2 70 200';
       const res = await request(app)
         .post('/api/delivery')
@@ -55,36 +55,23 @@ describe('POST /api/delivery', () => {
       expect(res.body.results).toHaveLength(5);
       expect(res.body.results[0].id).toBe('PKG1');
       expect(res.body.results[0].discount).toBe(0);
-      expect(res.body.results[0].cost).toBe(750);
-      expect(res.body.results[0].time).toBeCloseTo(3.98, 2);
-      expect(res.body.results[3].id).toBe('PKG4');
-      expect(res.body.results[3].discount).toBe(105);
-      expect(res.body.results[3].cost).toBe(1395);
-      expect(res.body.results[3].time).toBeCloseTo(0.85, 2);
-    });
-  });
-
-  describe('Given detailed=true', () => {
-    it('should return detailed results with vehicle info', async () => {
-      const input = '100 1\nPKG1 50 30 OFR001\n1 70 200';
-      const res = await request(app)
-        .post('/api/delivery')
-        .send({ input, detailed: true });
-
-      expect(res.status).toBe(200);
-      expect(res.body.results).toHaveLength(1);
+      expect(res.body.results[0].totalCost).toBe(750);
+      expect(res.body.results[0].deliveryTime).toBeCloseTo(4.0, 2);
       expect(res.body.results[0]).toHaveProperty('vehicleId');
       expect(res.body.results[0]).toHaveProperty('deliveryRound');
-      expect(res.body.results[0]).toHaveProperty('deliveryTime');
+      expect(res.body.results[3].id).toBe('PKG4');
+      expect(res.body.results[3].discount).toBe(105);
+      expect(res.body.results[3].totalCost).toBe(1395);
+      expect(res.body.results[3].deliveryTime).toBeCloseTo(0.85, 2);
     });
   });
 
-  describe('Given undeliverable package with detailed=true', () => {
+  describe('Given undeliverable package', () => {
     it('should mark it as undeliverable', async () => {
       const input = '100 1\nPKG1 300 100 OFR001\n1 70 200';
       const res = await request(app)
         .post('/api/delivery')
-        .send({ input, detailed: true });
+        .send({ input });
 
       expect(res.status).toBe(200);
       expect(res.body.results[0].undeliverable).toBe(true);
