@@ -12,8 +12,12 @@ export const deliveryRouter = Router();
 
 /**
  * POST /api/delivery
- * Body: { input: string, detailed?: boolean }
- * Returns: { results: [...] }
+ * Body: { input: string }
+ * Returns: { results: DetailedDeliveryResult[] }
+ *
+ * Breaking change: the `detailed` toggle and the old `{ cost, time }` response
+ * shape have been removed.  The endpoint now always returns the detailed result
+ * format from `computeDeliveryResultsFromParsed`.
  */
 deliveryRouter.post('/', calculationRateLimiter, validate(deliverySchema), (req: Request, res: Response) => {
   try {

@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import {
-  setOffers,
   parseInput,
   calculatePackageCost,
 } from '@nurulizyansyaza/courier-service-core';
