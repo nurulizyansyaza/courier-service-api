@@ -47,13 +47,13 @@ Calculate delivery time estimation.
 
 ```json
 // Request
-{ "input": "100 5\nPKG1 50 30 OFR001\n...\n2 70 200", "detailed": false }
+{ "input": "100 5\nPKG1 50 30 OFR001\n...\n2 70 200" }
 
 // Response
-{ "results": [{ "id": "PKG1", "discount": 0, "cost": 750, "time": 3.98 }, ...] }
+{ "results": [{ "id": "PKG1", "discount": 0, "cost": 750, "time": 4.00, ... }] }
 ```
 
-Set `"detailed": true` for vehicle assignment details.
+Always returns detailed results with vehicle assignment information.
 
 ### `POST /api/delivery/transit`
 
@@ -71,7 +71,7 @@ All requests pass through:
 | Middleware | Purpose |
 |-----------|---------|
 | **Helmet** | Security headers (X-Content-Type-Options, X-Frame-Options, etc.) |
-| **CORS** | Restricts origins to `localhost:5173` (Vite dev) and `localhost:3000` |
+| **CORS** | Restricts origins to `localhost:5173`, `localhost:3000`, and `CLOUDFRONT_DOMAIN` env var |
 | **Rate Limiter** | Global: 100 requests / 15 min. Calculation endpoints: 30 requests / min |
 | **Morgan** | HTTP request logging |
 | **Body Limit** | JSON body capped at 10kb |
