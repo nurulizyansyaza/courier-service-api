@@ -12,14 +12,6 @@ export const costSchema = z.object({
 // POST /api/delivery
 export const deliverySchema = z.object({
   input: inputField,
-  detailed: z.preprocess(
-    (val) => {
-      if (val === 'true') return true;
-      if (val === 'false' || val === undefined) return false;
-      return val;
-    },
-    z.boolean(),
-  ).optional(),
 });
 
 // POST /api/delivery/transit
