@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "issue_*"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: courier-service-api
+      - uses: actions/checkout@v4
+        with:
+          repository: nurulizyansyaza/courier-service-core
+          ref: issue_2-NPM_Package
+          path: courier-service-core
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: courier-service-api/package-lock.json
+      - run: cd courier-service-core && npm ci && npm run build
+      - run: cd courier-service-api && npm ci && npm test
+
+  trigger-deploy:
+    name: Trigger Staging Deploy
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Dispatch to courier-service
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DEPLOY_TRIGGER_TOKEN }}
+          repository: nurulizyansyaza/courier-service
+          event-type: sub-repo-updated
+          client-payload: '{"repo": "courier-service-api", "ref": "${{ github.sha }}"}'
