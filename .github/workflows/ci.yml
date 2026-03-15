@@ -39,10 +39,11 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
-      - name: Dispatch to courier-service
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.DEPLOY_TRIGGER_TOKEN }}
-          repository: nurulizyansyaza/courier-service
-          event-type: sub-repo-updated
-          client-payload: '{"repo": "courier-service-api", "ref": "${{ github.sha }}"}'
+      - name: Trigger staging deploy
+        run: |
+          gh workflow run deploy-staging.yml \
+            --repo nurulizyansyaza/courier-service \
+            --ref staging \
+            -f deploy_target=all
+        env:
+          GH_TOKEN: ${{ secrets.DEPLOY_TRIGGER_TOKEN }}
