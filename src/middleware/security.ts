@@ -7,12 +7,22 @@ import type { RequestHandler } from 'express';
 // Security headers (protects from XSS, clickjacking, MIME sniffing, etc.)
 export const securityHeaders = helmet();
 
-// CORS — allow frontend dev server and same-origin production
+// CORS — allow frontend dev server, same-origin, and CloudFront distributions
+const allowedOrigins = [
+  'http://localhost:5173', // Vite dev server
+  'http://localhost:3000', // Same-origin
+];
+
 export const corsMiddleware = cors({
-  origin: [
-    'http://localhost:5173', // Vite dev server
-    'http://localhost:3000', // Same-origin
-  ],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, server-to-server)
+    if (!origin) return callback(null, true);
+    // Allow listed origins and any CloudFront distribution
+    if (allowedOrigins.includes(origin) || /\.cloudfront\.net$/.test(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
   maxAge: 86400,
