@@ -1,0 +1,31 @@
+meta {
+  name: Validation - Missing Input
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}
+
+tests {
+  test("should return 400 with error message", function() {
+    const body = res.getBody();
+    expect(body.error).to.be.a("string");
+  });
+}

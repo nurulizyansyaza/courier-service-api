@@ -1,0 +1,40 @@
+meta {
+  name: Calculate Delivery - Undeliverable Package
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/delivery
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 300 100 OFR001\n1 70 200"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should mark overweight package as undeliverable", function() {
+    const pkg = res.getBody().results[0];
+    expect(pkg.undeliverable).to.equal(true);
+    expect(pkg.undeliverableReason).to.be.a("string");
+  });
+}
+
+docs {
+  ## Undeliverable Package
+
+  PKG1 weighs 300kg but the vehicle's max carrier weight is 200kg.
+  The API should return it as undeliverable with a reason.
+}

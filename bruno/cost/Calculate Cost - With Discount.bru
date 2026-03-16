@@ -1,0 +1,46 @@
+meta {
+  name: Calculate Cost - With Discount (OFR003)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 10 100 OFR003"
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should apply OFR003 discount (5%)", function() {
+    const pkg = res.getBody().results[0];
+    expect(pkg.discount).to.equal(35);
+    expect(pkg.cost).to.equal(665);
+  });
+}
+
+docs {
+  ## OFR003 Discount Verification
+
+  OFR003 gives 5% discount when:
+  - Weight: 10–150 kg
+  - Distance: 50–250 km
+
+  PKG1 (10kg, 100km) qualifies:
+  - deliveryCost = 100 + (10×10) + (100×5) = 700
+  - discount = 700 × 0.05 = 35
+  - totalCost = 700 - 35 = 665
+}

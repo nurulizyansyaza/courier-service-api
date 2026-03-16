@@ -1,0 +1,32 @@
+meta {
+  name: Validation - Empty Input
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": ""
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}
+
+tests {
+  test("should reject empty string input", function() {
+    expect(res.getBody().error).to.be.a("string");
+  });
+}

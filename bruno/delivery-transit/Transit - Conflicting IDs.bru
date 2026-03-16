@@ -1,0 +1,49 @@
+meta {
+  name: Transit - Conflicting IDs
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/delivery/transit
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 50 30 OFR001\n2 70 200",
+    "transitPackages": [
+      {
+        "id": "PKG1",
+        "weight": 30,
+        "distance": 80,
+        "offerCode": "OFR003"
+      }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.renamedPackages: isArray
+}
+
+tests {
+  test("should rename conflicting transit package", function() {
+    const body = res.getBody();
+    expect(body.renamedPackages).to.have.length(1);
+    expect(body.renamedPackages[0].oldId).to.equal("PKG1");
+  });
+}
+
+docs {
+  ## Conflicting Transit IDs
+
+  When a transit package has the same ID as a new package in the
+  input, the API renames the conflicting package to avoid collisions.
+}

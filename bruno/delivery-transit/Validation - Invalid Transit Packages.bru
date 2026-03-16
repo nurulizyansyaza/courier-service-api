@@ -1,0 +1,40 @@
+meta {
+  name: Validation - Invalid Transit Packages
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/delivery/transit
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 50 30 OFR001\n1 70 200",
+    "transitPackages": [
+      {
+        "id": "",
+        "weight": -1,
+        "distance": 80,
+        "offerCode": "OFR003"
+      }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}
+
+tests {
+  test("should reject invalid transit package (empty id, negative weight)", function() {
+    expect(res.getBody().error).to.be.a("string");
+  });
+}

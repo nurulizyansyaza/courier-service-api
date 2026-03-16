@@ -1,0 +1,73 @@
+meta {
+  name: Transit - With Packages
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/delivery/transit
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 50 30 OFR001\n2 70 200",
+    "transitPackages": [
+      {
+        "id": "PKG2",
+        "weight": 30,
+        "distance": 80,
+        "offerCode": "OFR003"
+      }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.output: isDefined
+}
+
+tests {
+  test("should merge transit packages and return result", function() {
+    const body = res.getBody();
+    expect(body.output).to.be.a("string");
+    expect(body.clearedFromTransit).to.have.length(1);
+    expect(body.stillInTransit).to.have.length(0);
+  });
+}
+
+docs {
+  ## POST /api/delivery/transit
+
+  Transit-aware delivery time calculation. Merges previously
+  in-flight packages (`transitPackages`) with new packages from
+  the `input` string, resolves ID conflicts, and computes
+  delivery times for the combined set.
+
+  ### Request body
+  ```json
+  {
+    "input": "<baseCost> <pkgCount>\n<pkgId> <weight> <distance> <offer>\n...\n<vehicles> <speed> <maxWeight>",
+    "transitPackages": [
+      { "id": "PKG2", "weight": 30, "distance": 80, "offerCode": "OFR003" }
+    ]
+  }
+  ```
+
+  ### Response
+  ```json
+  {
+    "output": "formatted result string",
+    "clearedFromTransit": ["PKG2"],
+    "stillInTransit": [],
+    "newTransitPackages": [...],
+    "renamedPackages": []
+  }
+  ```
+}

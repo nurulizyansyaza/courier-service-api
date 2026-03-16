@@ -1,0 +1,35 @@
+meta {
+  name: Calculate Cost - Single Package
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 5 5 OFR001"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.results: isArray
+}
+
+tests {
+  test("should return single package result", function() {
+    const body = res.getBody();
+    expect(body.results).to.have.length(1);
+    expect(body.results[0].id).to.equal("PKG1");
+    expect(body.results[0]).to.have.all.keys("id", "discount", "cost");
+  });
+}

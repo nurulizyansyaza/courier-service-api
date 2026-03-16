@@ -1,0 +1,78 @@
+meta {
+  name: Calculate Delivery - 5 Packages
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/delivery
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 5\nPKG1 50 30 OFR001\nPKG2 75 125 OFR008\nPKG3 175 100 OFR003\nPKG4 110 60 OFR002\nPKG5 155 95 NA\n2 70 200"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.results: isArray
+}
+
+tests {
+  test("should return 5 delivery results", function() {
+    expect(res.getBody().results).to.have.length(5);
+  });
+
+  test("PKG1: cost 750, delivery time ~4.00", function() {
+    const pkg = res.getBody().results.find(r => r.id === "PKG1");
+    expect(pkg.discount).to.equal(0);
+    expect(pkg.totalCost).to.equal(750);
+    expect(pkg.deliveryTime).to.be.closeTo(4.0, 0.01);
+  });
+
+  test("PKG4: discount 105, cost 1395, delivery time ~0.85", function() {
+    const pkg = res.getBody().results.find(r => r.id === "PKG4");
+    expect(pkg.discount).to.equal(105);
+    expect(pkg.totalCost).to.equal(1395);
+    expect(pkg.deliveryTime).to.be.closeTo(0.85, 0.02);
+  });
+
+  test("each result has vehicleId and deliveryRound", function() {
+    for (const r of res.getBody().results) {
+      if (!r.undeliverable) {
+        expect(r).to.have.property("vehicleId");
+        expect(r).to.have.property("deliveryRound");
+      }
+    }
+  });
+}
+
+docs {
+  ## POST /api/delivery
+
+  Calculate delivery cost **and** estimated delivery time for packages.
+
+  ### Input format
+  ```
+  <baseCost> <packageCount>
+  <pkgId> <weight> <distance> <offerCode>
+  ...
+  <vehicleCount> <maxSpeed> <maxCarrierWeight>
+  ```
+
+  ### Algorithm
+  - Packages sorted by weight (desc), then distance (asc)
+  - Knapsack packing for packages ≤ maxCarrierWeight
+  - Delivery time = distance / maxSpeed
+  - Vehicle returns after: currentTime + 2 × maxDistance / maxSpeed
+
+  ### Response
+  Returns `DetailedDeliveryResult[]` with vehicleId, deliveryRound, and returnTime.
+}

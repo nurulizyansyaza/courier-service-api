@@ -1,0 +1,34 @@
+meta {
+  name: Transit - No Packages
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/delivery/transit
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 50 30 OFR001\n1 70 200"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.output: isDefined
+}
+
+tests {
+  test("should work like regular delivery when no transit packages", function() {
+    const body = res.getBody();
+    expect(body.output).to.be.a("string");
+    expect(body.newTransitPackages).to.have.length(0);
+  });
+}

@@ -1,0 +1,78 @@
+meta {
+  name: Calculate Cost - Multiple Packages
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 3\nPKG1 5 5 OFR001\nPKG2 15 5 OFR002\nPKG3 10 100 OFR003"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.results: isArray
+}
+
+tests {
+  test("should return cost results for 3 packages", function() {
+    const body = res.getBody();
+    expect(body.results).to.have.length(3);
+  });
+
+  test("PKG1: no discount, cost 175", function() {
+    const pkg = res.getBody().results[0];
+    expect(pkg.id).to.equal("PKG1");
+    expect(pkg.discount).to.equal(0);
+    expect(pkg.cost).to.equal(175);
+  });
+
+  test("PKG2: no discount, cost 275", function() {
+    const pkg = res.getBody().results[1];
+    expect(pkg.id).to.equal("PKG2");
+    expect(pkg.discount).to.equal(0);
+    expect(pkg.cost).to.equal(275);
+  });
+
+  test("PKG3: discount 35, cost 665", function() {
+    const pkg = res.getBody().results[2];
+    expect(pkg.id).to.equal("PKG3");
+    expect(pkg.discount).to.equal(35);
+    expect(pkg.cost).to.equal(665);
+  });
+}
+
+docs {
+  ## POST /api/cost
+
+  Calculate delivery cost for one or more packages.
+
+  ### Input format (multiline string)
+  ```
+  <baseCost> <packageCount>
+  <pkgId> <weight> <distance> <offerCode>
+  ...
+  ```
+
+  ### Offer codes
+  - **OFR001** — 10% discount (weight: 70–200kg, distance: 0–199km)
+  - **OFR002** — 7% discount (weight: 100–250kg, distance: 50–150km)
+  - **OFR003** — 5% discount (weight: 10–150kg, distance: 50–250km)
+
+  ### Formula
+  ```
+  deliveryCost = baseCost + (weight × 10) + (distance × 5)
+  totalCost = deliveryCost - discount
+  ```
+}
