@@ -23,6 +23,7 @@ body:json {
 assert {
   res.status: eq 200
   res.body.output: isDefined
+  res.body.results: isArray
 }
 
 tests {
@@ -30,5 +31,15 @@ tests {
     const body = res.getBody();
     expect(body.output).to.be.a("string");
     expect(body.newTransitPackages).to.have.length(0);
+  });
+
+  test("should include detailed results with delivery time", function() {
+    const body = res.getBody();
+    expect(body.results).to.be.an("array");
+    expect(body.results.length).to.be.greaterThan(0);
+    const r = body.results[0];
+    expect(r).to.have.property("deliveryTime");
+    expect(r).to.have.property("vehicleId");
+    expect(r).to.have.property("deliveryRound");
   });
 }

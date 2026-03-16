@@ -1,0 +1,50 @@
+meta {
+  name: Cost - Vehicle Line Detected
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 3\nPKG1 50 70 OFR001\nPKG2 75 70 OFR003\nPKG3 100 200 OFR002\n2 70 90 1"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}
+
+tests {
+  test("should detect vehicle-like line in cost mode", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain("looks like vehicle info");
+    expect(error).to.contain("Delivery Cost mode");
+    expect(error).to.contain("Delivery Time mode");
+  });
+
+  test("should not report package ID errors for vehicle-like line", function() {
+    const error = res.getBody().error;
+    expect(error).to.not.contain("Invalid package ID");
+    expect(error).to.not.contain("Invalid offer code");
+  });
+}
+
+docs {
+  ## Validation: Vehicle-like Line Detected in Cost Mode
+
+  When a line with all numbers appears at the end in cost mode
+  (e.g., `2 70 90 1` — 4 numbers), the parser detects it as likely
+  vehicle info and suggests switching to Delivery Time mode, rather
+  than misinterpreting it as a package line with invalid fields.
+}

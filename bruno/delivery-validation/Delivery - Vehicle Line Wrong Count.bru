@@ -1,0 +1,48 @@
+meta {
+  name: Delivery - Vehicle Line Wrong Count
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/delivery
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 3\nPKG1 50 70 OFR001\nPKG2 75 70 OFR003\nPKG3 100 200 OFR002\n2 70 90 1"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}
+
+tests {
+  test("should report vehicle line has wrong number of values", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain("Expected exactly 3 numbers");
+    expect(error).to.contain("but found 4");
+  });
+
+  test("should not report package ID errors for vehicle line", function() {
+    const error = res.getBody().error;
+    expect(error).to.not.contain("Invalid package ID");
+    expect(error).to.not.contain("Invalid offer code");
+  });
+}
+
+docs {
+  ## Validation: Vehicle Line With Wrong Number of Values
+
+  When the vehicle line has 4 numbers instead of 3 (e.g., `2 70 90 1`),
+  the parser should report a specific error about the expected count
+  rather than misinterpreting it as a package line with invalid fields.
+}

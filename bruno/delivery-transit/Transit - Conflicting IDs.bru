@@ -31,6 +31,7 @@ body:json {
 assert {
   res.status: eq 200
   res.body.renamedPackages: isArray
+  res.body.results: isArray
 }
 
 tests {
@@ -38,6 +39,19 @@ tests {
     const body = res.getBody();
     expect(body.renamedPackages).to.have.length(1);
     expect(body.renamedPackages[0].oldId).to.equal("PKG1");
+  });
+
+  test("should include detailed results for all packages", function() {
+    const body = res.getBody();
+    expect(body.results).to.be.an("array");
+    expect(body.results.length).to.be.greaterThan(0);
+    body.results.forEach(function(r) {
+      expect(r).to.have.property("id");
+      expect(r).to.have.property("totalCost");
+      expect(r).to.have.property("baseCost");
+      expect(r).to.have.property("weight");
+      expect(r).to.have.property("distance");
+    });
   });
 }
 

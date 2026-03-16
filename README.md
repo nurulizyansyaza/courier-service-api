@@ -85,6 +85,20 @@ Calculate delivery time with transit package tracking.
 // Response (200)
 {
   "output": "PKG1 0 750 0.42\nPKG2 0 630 1.14",
+  "results": [
+    {
+      "vehicleId": 1, "deliveryRound": 1, "packagesRemaining": 0,
+      "currentTime": 0.42, "vehicleReturnTime": 0.85, "roundTripTime": 0.85,
+      "baseCost": 100, "weight": 50, "distance": 30, "offerCode": "OFR001",
+      "deliveryCost": 750, "undeliverable": false
+    },
+    {
+      "vehicleId": 1, "deliveryRound": 2, "packagesRemaining": 0,
+      "currentTime": 1.14, "vehicleReturnTime": 2.28, "roundTripTime": 2.28,
+      "baseCost": 100, "weight": 30, "distance": 80, "offerCode": "OFR003",
+      "deliveryCost": 630, "undeliverable": false
+    }
+  ],
   "newTransitPackages": [],
   "clearedFromTransit": [{ "id": "PKG2", "weight": 30, "distance": 80, "offerCode": "OFR003" }],
   "stillInTransit": [],

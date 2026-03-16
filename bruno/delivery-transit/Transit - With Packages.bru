@@ -31,6 +31,7 @@ body:json {
 assert {
   res.status: eq 200
   res.body.output: isDefined
+  res.body.results: isArray
 }
 
 tests {
@@ -39,6 +40,20 @@ tests {
     expect(body.output).to.be.a("string");
     expect(body.clearedFromTransit).to.have.length(1);
     expect(body.stillInTransit).to.have.length(0);
+  });
+
+  test("should include detailed results with vehicle/round info", function() {
+    const body = res.getBody();
+    expect(body.results).to.be.an("array");
+    expect(body.results.length).to.be.greaterThan(0);
+    const r = body.results[0];
+    expect(r).to.have.property("id");
+    expect(r).to.have.property("discount");
+    expect(r).to.have.property("totalCost");
+    expect(r).to.have.property("baseCost");
+    expect(r).to.have.property("weight");
+    expect(r).to.have.property("distance");
+    expect(r).to.have.property("deliveryCost");
   });
 }
 
@@ -64,9 +79,12 @@ docs {
   ```json
   {
     "output": "formatted result string",
-    "clearedFromTransit": ["PKG2"],
+    "results": [
+      { "id": "PKG1", "discount": 0, "totalCost": 750, "deliveryTime": 0.42, "vehicleId": 1, "deliveryRound": 1, "baseCost": 100, "weight": 50, "distance": 30, "deliveryCost": 750, ... }
+    ],
+    "clearedFromTransit": [{ "id": "PKG2", ... }],
     "stillInTransit": [],
-    "newTransitPackages": [...],
+    "newTransitPackages": [],
     "renamedPackages": []
   }
   ```
