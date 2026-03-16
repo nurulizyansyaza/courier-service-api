@@ -64,6 +64,27 @@ Calculate delivery time with transit package tracking.
 { "input": "...", "transitPackages": [{ "id": "T1", "weight": 10, "distance": 20, "offerCode": "X" }] }
 ```
 
+## Request Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant MW as Middleware Stack
+    participant Route as Route Handler
+    participant Core as @courier-service-core
+
+    Client->>MW: POST /api/cost
+    MW->>MW: Helmet (security headers)
+    MW->>MW: CORS (origin check)
+    MW->>MW: Rate Limiter (100/15min)
+    MW->>MW: Morgan (log request)
+    MW->>Route: Validated request
+    Route->>Route: Zod schema validation
+    Route->>Core: calculatePackageCost()
+    Core-->>Route: Results
+    Route-->>Client: JSON response
+```
+
 ## Security Middleware
 
 All requests pass through:
