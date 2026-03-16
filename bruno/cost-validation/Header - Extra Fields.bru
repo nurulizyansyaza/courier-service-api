@@ -1,0 +1,40 @@
+meta {
+  name: Header - Extra Fields
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1 extra\nPKG1 5 5 OFR001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains exactly 2 values
+}
+
+tests {
+  test("should reject header with more than 2 values", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Must have exactly 2 values');
+  });
+}
+
+docs {
+  ## Validation: Extra Fields in Header
+
+  Line 1 must contain exactly 2 values: `base_cost` and `no_of_packages`.
+  Any extra fields are rejected.
+}

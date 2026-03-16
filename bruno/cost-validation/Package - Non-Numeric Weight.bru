@@ -1,0 +1,41 @@
+meta {
+  name: Package - Non-Numeric Weight
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 abc 5 OFR001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains Invalid weight
+  res.body.error: contains Must be a number
+}
+
+tests {
+  test("should reject non-numeric weight", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Invalid weight "abc": Must be a number');
+  });
+}
+
+docs {
+  ## Validation: Non-Numeric Weight
+
+  Weight (field 2 on package lines) must be a positive number.
+  Letters (`abc`), units (`5kg`), and negatives (`-5`) are all rejected.
+}

@@ -1,0 +1,41 @@
+meta {
+  name: Package - Space In Offer Code
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 5 5 OFR 001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains No spaces allowed in offer code
+}
+
+tests {
+  test("should detect space within offer code", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('No spaces allowed in offer code');
+    expect(error).to.contain('Use "OFR001" not "OFR 001"');
+  });
+}
+
+docs {
+  ## Validation: Space in Offer Code
+
+  Spaces within offer codes are detected and reported with a suggestion.
+  `OFR 001` → should be `OFR001`
+}

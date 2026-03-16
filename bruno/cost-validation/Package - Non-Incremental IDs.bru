@@ -1,0 +1,41 @@
+meta {
+  name: Package - Non-Incremental IDs
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 2\nPKG1 5 5 OFR001\nPKG3 10 10 OFR002"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains incremental
+}
+
+tests {
+  test("should reject non-incremental package IDs", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('incremental');
+    expect(error).to.contain('PKG2');
+  });
+}
+
+docs {
+  ## Validation: Non-Incremental Package IDs
+
+  Package IDs must be sequential starting from 1: PKG1, PKG2, PKG3, ...
+  Skipping numbers (PKG1, PKG3) or starting from a different number is rejected.
+}

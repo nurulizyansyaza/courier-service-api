@@ -1,0 +1,41 @@
+meta {
+  name: Package - Invalid Offer Code
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 5 5 BADCODE"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains Invalid offer code
+}
+
+tests {
+  test("should reject unknown offer code", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Invalid offer code "BADCODE"');
+    expect(error).to.contain('OFR001/OFR002/OFR003');
+  });
+}
+
+docs {
+  ## Validation: Invalid Offer Code
+
+  Offer codes must match the `OFR` + digits pattern or be `NA`.
+  Arbitrary strings like `BADCODE`, `ofr1-`, `o-1` are rejected.
+}

@@ -1,0 +1,41 @@
+meta {
+  name: Package - Space In Package ID
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG 1 5 5 OFR001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains No spaces allowed in package ID
+}
+
+tests {
+  test("should detect space within package ID", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('No spaces allowed in package ID');
+    expect(error).to.contain('Use "PKG1" not "PKG 1"');
+  });
+}
+
+docs {
+  ## Validation: Space in Package ID
+
+  Spaces within identifiers are detected and reported with a suggestion.
+  `PKG 1` → should be `PKG1`
+}

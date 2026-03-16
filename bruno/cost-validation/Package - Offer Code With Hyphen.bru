@@ -1,0 +1,42 @@
+meta {
+  name: Package - Offer Code With Hyphen
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 5 5 OFR-001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains Invalid offer code
+}
+
+tests {
+  test("should reject offer code with hyphen", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Invalid offer code "OFR-001"');
+  });
+}
+
+docs {
+  ## Validation: Offer Code With Hyphen
+
+  Offer codes must not contain hyphens or special characters.
+  - `OFR-001` ✗
+  - `ofr1-` ✗
+  - `o-1` ✗
+}

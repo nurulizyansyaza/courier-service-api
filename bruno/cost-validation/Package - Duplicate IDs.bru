@@ -1,0 +1,39 @@
+meta {
+  name: Package - Duplicate IDs
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 2\nPKG1 5 5 OFR001\nPKG1 10 10 OFR002"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains Duplicate package ID
+}
+
+tests {
+  test("should reject duplicate package IDs", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Duplicate package ID');
+  });
+}
+
+docs {
+  ## Validation: Duplicate Package IDs
+
+  Each package must have a unique ID. Duplicates are rejected.
+}

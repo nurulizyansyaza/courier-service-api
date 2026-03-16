@@ -37,8 +37,14 @@ Calculate delivery cost with offer discounts.
 // Request
 { "input": "100 3\nPKG1 5 5 OFR001\nPKG2 15 5 OFR002\nPKG3 10 100 OFR003" }
 
-// Response
-{ "results": [{ "id": "PKG1", "discount": 0, "cost": 175 }, ...] }
+// Response (200)
+{
+  "results": [
+    { "id": "PKG1", "discount": 0, "cost": 175 },
+    { "id": "PKG2", "discount": 0, "cost": 275 },
+    { "id": "PKG3", "discount": 35, "cost": 665 }
+  ]
+}
 ```
 
 ### `POST /api/delivery`
@@ -47,13 +53,21 @@ Calculate delivery time estimation.
 
 ```json
 // Request
-{ "input": "100 5\nPKG1 50 30 OFR001\n...\n2 70 200" }
+{
+  "input": "100 5\nPKG1 50 30 OFR001\nPKG2 75 125 OFR008\nPKG3 175 100 OFR003\nPKG4 110 60 OFR002\nPKG5 155 95 NA\n2 70 200"
+}
 
-// Response
-{ "results": [{ "id": "PKG1", "discount": 0, "cost": 750, "time": 4.00, ... }] }
+// Response (200) — always returns detailed results with vehicle assignment
+{
+  "results": [
+    { "id": "PKG1", "discount": 0, "totalCost": 750, "deliveryTime": 4.00, "deliveryRound": 4, "vehicleId": 1, ... },
+    { "id": "PKG2", "discount": 0, "totalCost": 1475, "deliveryTime": 1.78, "deliveryRound": 1, "vehicleId": 1, ... },
+    { "id": "PKG3", "discount": 0, "totalCost": 2350, "deliveryTime": 1.42, "deliveryRound": 2, "vehicleId": 2, ... },
+    { "id": "PKG4", "discount": 105, "totalCost": 1395, "deliveryTime": 0.85, "deliveryRound": 1, "vehicleId": 1, ... },
+    { "id": "PKG5", "discount": 0, "totalCost": 2125, "deliveryTime": 4.21, "deliveryRound": 3, "vehicleId": 2, ... }
+  ]
+}
 ```
-
-Always returns detailed results with vehicle assignment information.
 
 ### `POST /api/delivery/transit`
 
@@ -61,7 +75,35 @@ Calculate delivery time with transit package tracking.
 
 ```json
 // Request
-{ "input": "...", "transitPackages": [{ "id": "T1", "weight": 10, "distance": 20, "offerCode": "X" }] }
+{
+  "input": "100 1\nPKG1 50 30 OFR001\n2 70 200",
+  "transitPackages": [
+    { "id": "PKG2", "weight": 30, "distance": 80, "offerCode": "OFR003" }
+  ]
+}
+
+// Response (200)
+{
+  "output": "PKG1 0 750 0.42\nPKG2 0 630 1.14",
+  "newTransitPackages": [],
+  "clearedFromTransit": [{ "id": "PKG2", "weight": 30, "distance": 80, "offerCode": "OFR003" }],
+  "stillInTransit": [],
+  "renamedPackages": []
+}
+```
+
+### Error Responses
+
+All endpoints return `400` with an `error` field for invalid input. The parser collects **all** errors and returns them together (newline-separated):
+
+```json
+// Request
+{ "input": "abc xyz\nBAD -5 abc WRONG" }
+
+// Response (400)
+{
+  "error": "Line 1: Base cost \"abc\" must be a number\nLine 1: Package count \"xyz\" must be a whole number\nLine 2: Invalid package ID \"BAD\": Must be \"PKG\" followed by digits (e.g., PKG1, pkg2)\nLine 2: Invalid weight \"-5\": Must be a number\nLine 2: Invalid distance \"abc\": Must be a number\nLine 2: Invalid offer code \"WRONG\": Must be one of: OFR001/OFR002/OFR003, NA (case-insensitive)"
+}
 ```
 
 ## Request Flow
@@ -157,10 +199,31 @@ bruno/
 │   ├── Validation - Missing Input            # 400: empty body
 │   ├── Validation - Empty Input              # 400: empty string
 │   └── Validation - Malformed Input          # 400: unparseable
+├── cost-validation/
+│   ├── Header - Non-Numeric Base Cost        # 400: abc as base cost
+│   ├── Header - Non-Numeric Package Count    # 400: abc as count
+│   ├── Header - Extra Fields                 # 400: 3 values instead of 2
+│   ├── Header - Decimal Package Count        # 400: 2.5 as count
+│   ├── Package - Invalid ID With Hyphen      # 400: -pkg1, PKG-1
+│   ├── Package - Space In Package ID         # 400: PKG 1 → PKG1
+│   ├── Package - Space In Offer Code         # 400: OFR 001 → OFR001
+│   ├── Package - Non-Numeric Weight          # 400: abc / 5kg
+│   ├── Package - Non-Numeric Distance        # 400: 10km
+│   ├── Package - Invalid Offer Code          # 400: BADCODE
+│   ├── Package - Offer Code With Hyphen      # 400: OFR-001
+│   ├── Package - Non-Incremental IDs         # 400: PKG1, PKG3
+│   ├── Package - Duplicate IDs               # 400: PKG1, PKG1
+│   ├── Multi-Error - All Errors At Once      # 400: 6 errors in one response
+│   ├── Multi-Error - Multiple Package Lines  # 400: errors across 3 lines
+│   └── Case - Lowercase Input Accepted       # 200: pkg1/ofr001 normalized
 ├── delivery/
 │   ├── Calculate Delivery - 5 Packages       # POST /api/delivery (full scenario)
 │   ├── Calculate Delivery - Undeliverable    # POST /api/delivery (overweight)
 │   └── Validation - Missing Input            # 400: empty body
+├── delivery-validation/
+│   ├── Delivery - Missing Vehicle Line       # 400: no vehicle info
+│   ├── Delivery - Invalid Package And Vehicle  # 400: pkg + vehicle errors
+│   └── Delivery - Multi-Error All Lines      # 400: header + pkg + vehicle errors
 └── delivery-transit/
     ├── Transit - With Packages               # POST /api/delivery/transit (merge)
     ├── Transit - Conflicting IDs             # POST /api/delivery/transit (rename)

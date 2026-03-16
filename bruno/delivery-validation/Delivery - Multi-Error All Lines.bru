@@ -1,0 +1,57 @@
+meta {
+  name: Delivery - Multi-Error All Lines
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/delivery
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "abc 2\nPKG-1 5kg 10km OFR-001\nPKG 2 -5 abc WRONG\n0 -1 0"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}
+
+tests {
+  test("should report header, package, and vehicle errors together", function() {
+    const error = res.getBody().error;
+    const lines = error.split("\n");
+    expect(lines.length).to.be.greaterThan(4);
+  });
+
+  test("should report header errors", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain("Base cost");
+  });
+
+  test("should report package line errors", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain("Line 2");
+    expect(error).to.contain("Line 3");
+  });
+}
+
+docs {
+  ## Validation: Multi-Error Across All Line Types
+
+  A comprehensive test that has errors in:
+  - Line 1 (header): non-numeric base cost
+  - Line 2 (package): hyphen in ID, letters in weight/distance, hyphen in offer code
+  - Line 3 (package): space in ID, negative weight, letters in distance, invalid offer
+  - Line 4 (vehicle): zero vehicles, negative speed, zero weight
+
+  All errors are collected and returned in a single response.
+}

@@ -1,0 +1,41 @@
+meta {
+  name: Delivery - Missing Vehicle Line
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/delivery
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 50 30 OFR001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}
+
+tests {
+  test("should require vehicle info for delivery mode", function() {
+    const error = res.getBody().error;
+    expect(error).to.be.a("string");
+  });
+}
+
+docs {
+  ## Validation: Missing Vehicle Line
+
+  Delivery time mode requires a vehicle info line as the last line
+  with 3 numbers: `no_of_vehicles max_speed max_weight`.
+  Omitting it returns a 400 error.
+}

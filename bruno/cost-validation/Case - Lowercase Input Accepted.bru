@@ -1,0 +1,46 @@
+meta {
+  name: Case - Lowercase Input Accepted
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\npkg1 50 30 ofr001"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.results: isArray
+}
+
+tests {
+  test("should accept lowercase and normalize to uppercase", function() {
+    const pkg = res.getBody().results[0];
+    expect(pkg.id).to.equal("PKG1");
+  });
+
+  test("should calculate cost correctly", function() {
+    const pkg = res.getBody().results[0];
+    expect(pkg.cost).to.equal(750);
+  });
+}
+
+docs {
+  ## Validation: Case Insensitive Input
+
+  Package IDs and offer codes are case-insensitive.
+  `pkg1` → normalized to `PKG1`, `ofr001` → normalized to `OFR001`.
+  The calculation still works correctly.
+}

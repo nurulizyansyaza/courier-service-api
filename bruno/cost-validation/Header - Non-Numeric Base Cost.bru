@@ -1,0 +1,41 @@
+meta {
+  name: Header - Non-Numeric Base Cost
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "abc 1\nPKG1 5 5 OFR001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains Base cost
+  res.body.error: contains must be a number
+}
+
+tests {
+  test("should reject non-numeric base cost", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Base cost "abc" must be a number');
+  });
+}
+
+docs {
+  ## Validation: Non-Numeric Base Cost
+
+  Line 1 must have exactly 2 numeric values.
+  Sending a letter-based base cost should return 400 with a clear error.
+}

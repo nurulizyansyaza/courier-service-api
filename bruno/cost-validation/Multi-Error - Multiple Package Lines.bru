@@ -1,0 +1,49 @@
+meta {
+  name: Multi-Error - Multiple Package Lines
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 3\nPKG1 abc 5 OFR001\nPKG2 10 def OFR002\nPKG3 5 5 BADCODE"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}
+
+tests {
+  test("should report errors from all 3 package lines", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain("Line 2");
+    expect(error).to.contain("Line 3");
+    expect(error).to.contain("Line 4");
+  });
+
+  test("should report each field error on its line", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Invalid weight "abc"');
+    expect(error).to.contain('Invalid distance "def"');
+    expect(error).to.contain('Invalid offer code "BADCODE"');
+  });
+}
+
+docs {
+  ## Validation: Errors Across Multiple Package Lines
+
+  When multiple package lines have errors, all are collected
+  and reported with their line numbers.
+}

@@ -1,0 +1,44 @@
+meta {
+  name: Package - Invalid ID With Hyphen
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\n-pkg1 5 5 OFR001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains Invalid package ID
+}
+
+tests {
+  test("should reject package ID starting with hyphen", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Invalid package ID "-pkg1"');
+    expect(error).to.contain('Must be "PKG" followed by digits');
+  });
+}
+
+docs {
+  ## Validation: Invalid Package ID With Hyphen
+
+  Package IDs must be `PKG` followed by digits only (e.g., PKG1, pkg2).
+  Hyphens, special characters, and other formats are rejected:
+  - `-pkg1` ✗
+  - `PKG-1` ✗
+  - `p-1` ✗
+}

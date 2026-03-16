@@ -1,0 +1,43 @@
+meta {
+  name: Delivery - Invalid Package And Vehicle
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/delivery
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nBAD 5 5 OFR001\n0 0 0"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}
+
+tests {
+  test("should report package and vehicle errors together", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain("Invalid package ID");
+    expect(error).to.contain("Number of vehicles must be at least 1");
+    expect(error).to.contain("Max speed must be greater than 0");
+    expect(error).to.contain("Max weight must be greater than 0");
+  });
+}
+
+docs {
+  ## Validation: Package + Vehicle Errors Together
+
+  When both the package lines and vehicle line have errors,
+  all errors are collected and returned in a single response.
+}

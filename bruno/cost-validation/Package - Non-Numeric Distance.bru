@@ -1,0 +1,41 @@
+meta {
+  name: Package - Non-Numeric Distance
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 1\nPKG1 5 10km OFR001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains Invalid distance
+  res.body.error: contains Must be a number
+}
+
+tests {
+  test("should reject distance with letters", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Invalid distance "10km": Must be a number');
+  });
+}
+
+docs {
+  ## Validation: Non-Numeric Distance
+
+  Distance (field 3 on package lines) must be a positive number.
+  Letters (`abc`), units (`10km`), and negatives (`-10`) are all rejected.
+}

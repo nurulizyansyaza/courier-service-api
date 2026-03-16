@@ -1,0 +1,41 @@
+meta {
+  name: Header - Non-Numeric Package Count
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 abc\nPKG1 5 5 OFR001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains Package count
+  res.body.error: contains must be a whole number
+}
+
+tests {
+  test("should reject non-numeric package count", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Package count "abc" must be a whole number');
+  });
+}
+
+docs {
+  ## Validation: Non-Numeric Package Count
+
+  The package count (second value on line 1) must be a whole number.
+  Decimals like `2.5` and letters like `abc` are both rejected.
+}

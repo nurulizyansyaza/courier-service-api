@@ -1,0 +1,65 @@
+meta {
+  name: Multi-Error - All Errors At Once
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "abc xyz\nBAD -5 abc WRONG"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: isDefined
+}
+
+tests {
+  test("should report all errors at once", function() {
+    const error = res.getBody().error;
+    const lines = error.split("\n");
+    expect(lines.length).to.be.greaterThan(3);
+  });
+
+  test("should contain header errors", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Base cost "abc" must be a number');
+    expect(error).to.contain('Package count "xyz" must be a whole number');
+  });
+
+  test("should contain package field errors", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Invalid package ID "BAD"');
+    expect(error).to.contain('Invalid weight "-5"');
+    expect(error).to.contain('Invalid distance "abc"');
+    expect(error).to.contain('Invalid offer code "WRONG"');
+  });
+}
+
+docs {
+  ## Validation: Multi-Error Collection
+
+  The parser collects **all** validation errors and returns them
+  together in a single newline-separated error string.
+
+  This example has 6 errors across header and package lines:
+  1. Line 1: non-numeric base cost
+  2. Line 1: non-numeric package count
+  3. Line 2: invalid package ID
+  4. Line 2: invalid weight (negative)
+  5. Line 2: invalid distance (letters)
+  6. Line 2: invalid offer code
+
+  All 6 are reported in one response so the user can fix everything at once.
+}

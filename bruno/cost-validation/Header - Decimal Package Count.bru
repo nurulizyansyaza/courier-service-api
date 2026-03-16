@@ -1,0 +1,40 @@
+meta {
+  name: Header - Decimal Package Count
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/cost
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": "100 2.5\nPKG1 5 5 OFR001"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains must be a whole number
+}
+
+tests {
+  test("should reject decimal package count", function() {
+    const error = res.getBody().error;
+    expect(error).to.contain('Package count "2.5" must be a whole number');
+  });
+}
+
+docs {
+  ## Validation: Decimal Package Count
+
+  Package count must be a whole integer (e.g., 1, 2, 3).
+  Decimal values like 2.5 are rejected.
+}
