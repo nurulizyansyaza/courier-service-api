@@ -41,6 +41,18 @@ describe('POST /api/cost', () => {
       expect(res.body.error).toBeDefined();
     });
   });
+
+  describe('Given input with multiple validation errors', () => {
+    it('should return all errors from core parser', async () => {
+      const res = await request(app)
+        .post('/api/cost')
+        .send({ input: 'abc xyz\nBAD -5 10km WRONG' });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBeDefined();
+      // Core parser returns newline-separated errors
+      expect(res.body.error).toContain('Line 1');
+    });
+  });
 });
 
 describe('POST /api/delivery', () => {
@@ -104,6 +116,28 @@ describe('POST /api/delivery/transit', () => {
       expect(res.body.clearedFromTransit).toHaveLength(1);
       expect(res.body.stillInTransit).toHaveLength(0);
     });
+
+    it('should include detailed cost and time in results', async () => {
+      const input = '100 1\nPKG1 50 30 OFR001\n2 70 200';
+      const transitPackages = [
+        { id: 'PKG2', weight: 30, distance: 80, offerCode: 'OFR003' },
+      ];
+      const res = await request(app)
+        .post('/api/delivery/transit')
+        .send({ input, transitPackages });
+
+      expect(res.status).toBe(200);
+      expect(res.body.results).toBeDefined();
+      expect(res.body.results.length).toBeGreaterThanOrEqual(2);
+      for (const r of res.body.results) {
+        expect(r).toHaveProperty('id');
+        expect(r).toHaveProperty('totalCost');
+        expect(r).toHaveProperty('discount');
+        expect(r).toHaveProperty('deliveryCost');
+        expect(r).toHaveProperty('weight');
+        expect(r).toHaveProperty('distance');
+      }
+    });
   });
 
   describe('Given input with conflicting transit IDs', () => {
@@ -132,6 +166,50 @@ describe('POST /api/delivery/transit', () => {
       expect(res.status).toBe(200);
       expect(res.body.output).toBeDefined();
       expect(res.body.newTransitPackages).toHaveLength(0);
+    });
+  });
+
+  describe('Given empty transit packages array', () => {
+    it('should work the same as no transit packages', async () => {
+      const input = '100 1\nPKG1 50 30 OFR001\n1 70 200';
+      const res = await request(app)
+        .post('/api/delivery/transit')
+        .send({ input, transitPackages: [] });
+
+      expect(res.status).toBe(200);
+      expect(res.body.output).toBeDefined();
+      expect(res.body.results).toHaveLength(1);
+      expect(res.body.newTransitPackages).toHaveLength(0);
+      expect(res.body.clearedFromTransit).toHaveLength(0);
+      expect(res.body.stillInTransit).toHaveLength(0);
+    });
+  });
+
+  describe('Given transit package that exceeds vehicle weight', () => {
+    it('should keep it in stillInTransit', async () => {
+      const input = '100 1\nPKG1 50 30 OFR001\n1 70 100';
+      const transitPackages = [
+        { id: 'PKG2', weight: 150, distance: 80, offerCode: 'NA' },
+      ];
+      const res = await request(app)
+        .post('/api/delivery/transit')
+        .send({ input, transitPackages });
+
+      expect(res.status).toBe(200);
+      expect(res.body.stillInTransit).toHaveLength(1);
+      expect(res.body.stillInTransit[0].id).toBe('PKG2');
+      expect(res.body.clearedFromTransit).toHaveLength(0);
+    });
+  });
+
+  describe('Given invalid transit packages format', () => {
+    it('should return 400 for malformed transit data', async () => {
+      const res = await request(app)
+        .post('/api/delivery/transit')
+        .send({ input: '100 1\nPKG1 50 30 OFR001\n1 70 200', transitPackages: 'not-an-array' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBeDefined();
     });
   });
 });

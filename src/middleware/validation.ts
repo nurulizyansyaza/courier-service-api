@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import type { Request, Response, NextFunction } from 'express';
+import { MAX_INPUT_LENGTH } from '../config';
 
 // Shared schema: input must be a non-empty string
-const inputField = z.string().min(1, 'Input must be a non-empty string').max(5000, 'Input exceeds maximum length');
+const inputField = z.string().min(1, 'Input must be a non-empty string').max(MAX_INPUT_LENGTH, 'Input exceeds maximum length');
 
 // POST /api/cost
 export const costSchema = z.object({
@@ -35,8 +36,11 @@ export function validate<T extends z.ZodTypeAny>(schema: T) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const result = schema.safeParse(req.body);
     if (!result.success) {
-      const firstError = result.error.issues[0];
-      res.status(400).json({ error: firstError.message });
+      const messages = result.error.issues.map(issue => {
+        const path = issue.path.length > 0 ? `${issue.path.join('.')}: ` : '';
+        return `${path}${issue.message}`;
+      });
+      res.status(400).json({ error: messages.length === 1 ? messages[0] : messages.join('; ') });
       return;
     }
     req.body = result.data;

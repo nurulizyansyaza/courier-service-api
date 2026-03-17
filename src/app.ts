@@ -7,6 +7,7 @@ import {
   apiRateLimiter,
   requestLogger,
 } from './middleware/security';
+import { MAX_BODY_SIZE } from './config';
 
 export const app = express();
 
@@ -15,7 +16,7 @@ app.use(securityHeaders);        // Helmet: security headers (XSS, clickjacking,
 app.use(corsMiddleware);         // CORS: restrict cross-origin access
 app.use(apiRateLimiter);         // Rate limiting: protect from DDoS / request flooding
 app.use(requestLogger);          // Morgan: request logging / audit trail
-app.use(express.json({ limit: '10kb' })); // Body parser with size limit
+app.use(express.json({ limit: MAX_BODY_SIZE })); // Body parser with size limit
 
 // ── Routes ───────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {

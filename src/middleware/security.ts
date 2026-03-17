@@ -3,25 +3,23 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import type { RequestHandler } from 'express';
+import {
+  ALLOWED_ORIGINS,
+  API_RATE_LIMIT_WINDOW_MS,
+  API_RATE_LIMIT_MAX,
+  CALC_RATE_LIMIT_WINDOW_MS,
+  CALC_RATE_LIMIT_MAX,
+} from '../config';
 
 // Security headers (protects from XSS, clickjacking, MIME sniffing, etc.)
 export const securityHeaders = helmet();
 
 // CORS — allow frontend dev server, same-origin, and configured CloudFront distribution
-const allowedOrigins = [
-  'http://localhost:5173', // Vite dev server
-  'http://localhost:3000', // Same-origin
-];
-
-if (process.env.CLOUDFRONT_DOMAIN) {
-  allowedOrigins.push(`https://${process.env.CLOUDFRONT_DOMAIN}`);
-}
-
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (curl, server-to-server)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    if (ALLOWED_ORIGINS.includes(origin)) {
       return callback(null, true);
     }
     callback(null, false);
@@ -33,8 +31,8 @@ export const corsMiddleware = cors({
 
 // Rate limiting — protects from DDoS, bots, and request flooding
 export const apiRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15-minute window
-  max: 100,                  // 100 requests per window per IP
+  windowMs: API_RATE_LIMIT_WINDOW_MS,
+  max: API_RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later.' },
@@ -42,8 +40,8 @@ export const apiRateLimiter = rateLimit({
 
 // Stricter rate limit for calculation endpoints
 export const calculationRateLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1-minute window
-  max: 30,             // 30 calculation requests per minute per IP
+  windowMs: CALC_RATE_LIMIT_WINDOW_MS,
+  max: CALC_RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Calculation rate limit exceeded. Please wait before trying again.' },

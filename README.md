@@ -21,7 +21,7 @@ npm run dev
 npm start       # runs dist/index.js
 ```
 
-Server starts on `http://localhost:3000` (override with `PORT` env variable).
+Server starts on `http://localhost:3000` (override with `PORT` env variable). On `SIGTERM`/`SIGINT`, the server shuts down gracefully — in-flight requests complete before the process exits.
 
 ## API Endpoints
 
@@ -54,7 +54,7 @@ Calculate delivery time estimation.
 ```json
 // Request
 {
-  "input": "100 5\nPKG1 50 30 OFR001\nPKG2 75 125 OFR008\nPKG3 175 100 OFR003\nPKG4 110 60 OFR002\nPKG5 155 95 NA\n2 70 200"
+  "input": "100 5\nPKG1 50 30 OFR001\nPKG2 75 125 NA\nPKG3 175 100 OFR003\nPKG4 110 60 OFR002\nPKG5 155 95 NA\n2 70 200"
 }
 
 // Response (200) — always returns detailed results with vehicle assignment
@@ -160,8 +160,8 @@ All requests pass through:
 npm test
 ```
 
-- **Unit tests** — mocked core library, tests route logic and validation
-- **Integration tests** — real core library, end-to-end calculations via supertest
+- **Unit tests** (`routes.unit.test.ts`) — mocked core library, tests route logic, validation, and error handling (18 tests)
+- **Integration tests** (`api.test.ts`) — real core library, end-to-end calculations via supertest (15 tests)
 
 ## CI/CD
 
@@ -236,6 +236,7 @@ bruno/
 │   └── Validation - Missing Input            # 400: empty body
 ├── delivery-validation/
 │   ├── Delivery - Missing Vehicle Line       # 400: no vehicle info
+│   ├── Delivery - Vehicle Line Wrong Count   # 400: extra vehicle fields
 │   ├── Delivery - Invalid Package And Vehicle  # 400: pkg + vehicle errors
 │   └── Delivery - Multi-Error All Lines      # 400: header + pkg + vehicle errors
 └── delivery-transit/
@@ -252,7 +253,8 @@ Each request includes inline **assertions**, **test scripts**, and **docs** that
 ```
 src/
   app.ts                  # Express app setup with middleware stack
-  index.ts                # Server entry point
+  config.ts               # Centralized configuration constants
+  index.ts                # Server entry point with graceful shutdown
   middleware/
     security.ts           # helmet, cors, rate-limit, morgan config
     validation.ts         # Zod schemas + validate() middleware
@@ -261,6 +263,19 @@ src/
     delivery.ts           # POST /api/delivery, POST /api/delivery/transit
 bruno/                    # Bruno API testing collection (see above)
 __tests__/
-  routes.unit.test.ts     # Unit tests with mocked core
-  api.test.ts             # Integration tests
+  routes.unit.test.ts     # Unit tests with mocked core (18 tests)
+  api.test.ts             # Integration tests (15 tests)
 ```
+
+## Configuration
+
+All tuneable values are centralised in `src/config.ts`:
+
+| Constant | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `3000` | Server port (overridable via `PORT` env var) |
+| `GLOBAL_RATE_LIMIT` | 100 req / 15 min | Global rate limit |
+| `CALC_RATE_LIMIT` | 30 req / 1 min | Calculation endpoint rate limit |
+| `CORS_ORIGINS` | localhost:5173, :3000, CloudFront | Allowed CORS origins |
+| `MAX_BODY_SIZE` | `10kb` | JSON body size limit |
+| `MAX_INPUT_LENGTH` | 10 000 chars | Max input string length |
