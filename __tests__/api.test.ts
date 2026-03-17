@@ -46,7 +46,7 @@ describe('POST /api/cost', () => {
 describe('POST /api/delivery', () => {
   describe('Given valid delivery input', () => {
     it('should return detailed delivery results', async () => {
-      const input = '100 5\nPKG1 50 30 OFR001\nPKG2 75 125 OFR008\nPKG3 175 100 OFR003\nPKG4 110 60 OFR002\nPKG5 155 95 NA\n2 70 200';
+      const input = '100 5\nPKG1 50 30 OFR001\nPKG2 75 125 NA\nPKG3 175 100 OFR003\nPKG4 110 60 OFR002\nPKG5 155 95 NA\n2 70 200';
       const res = await request(app)
         .post('/api/delivery')
         .send({ input });
