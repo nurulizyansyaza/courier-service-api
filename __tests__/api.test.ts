@@ -53,16 +53,17 @@ describe('POST /api/delivery', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.results).toHaveLength(5);
-      expect(res.body.results[0].id).toBe('PKG1');
-      expect(res.body.results[0].discount).toBe(0);
-      expect(res.body.results[0].totalCost).toBe(750);
-      expect(res.body.results[0].deliveryTime).toBeCloseTo(4.0, 2);
+      // Results are returned in delivery round order (not input order)
+      expect(res.body.results[0].id).toBe('PKG4');
+      expect(res.body.results[0].discount).toBe(105);
+      expect(res.body.results[0].totalCost).toBe(1395);
+      expect(res.body.results[0].deliveryTime).toBeCloseTo(0.85, 2);
       expect(res.body.results[0]).toHaveProperty('vehicleId');
       expect(res.body.results[0]).toHaveProperty('deliveryRound');
-      expect(res.body.results[3].id).toBe('PKG4');
-      expect(res.body.results[3].discount).toBe(105);
-      expect(res.body.results[3].totalCost).toBe(1395);
-      expect(res.body.results[3].deliveryTime).toBeCloseTo(0.85, 2);
+      expect(res.body.results[4].id).toBe('PKG1');
+      expect(res.body.results[4].discount).toBe(0);
+      expect(res.body.results[4].totalCost).toBe(750);
+      expect(res.body.results[4].deliveryTime).toBeCloseTo(4.0, 2);
     });
   });
 
