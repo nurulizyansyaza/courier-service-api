@@ -1,27 +1,72 @@
 # @nurulizyansyaza/courier-service-api
 
-Express REST API for the **Courier Service** App Calculator. Wraps the core library with HTTP endpoints, security middleware, input validation, and rate limiting.
+Express REST API for the **Courier Service** App Calculator. Wraps the core library with HTTP endpoints, security middleware, input validation and rate limiting.
 
 ## Setup
 
+### Prerequisites
+
+- **Node.js** 18 or 20 — check with `node --version`
+- **npm** — check with `npm --version`
+- **courier-service-core** must be built first (see below)
+
+### Step 1 — Build the core library first
+
+The API depends on the core library. If you haven't built it yet:
+
 ```bash
+cd courier-service-core
 npm install
-npm run build   # compile TypeScript to dist/
+npm run build
+cd ..
 ```
 
-Requires [`courier-service-core`](https://github.com/nurulizyansyaza/courier-service-core) to be built and available as a sibling directory (linked via `file:../courier-service-core`).
-
-## Usage
+### Step 2 — Install dependencies
 
 ```bash
-# Development (ts-node)
+cd courier-service-api
+npm install
+```
+
+### Step 3 — Build the API
+
+```bash
+npm run build
+```
+
+This compiles TypeScript to `dist/`.
+
+### Step 4 — Start the API
+
+```bash
+# Development mode (auto-reloads on change)
 npm run dev
 
-# Production
-npm start       # runs dist/index.js
+# Or production mode (runs compiled JS)
+npm start
 ```
 
-Server starts on `http://localhost:3000` (override with `PORT` env variable). On `SIGTERM`/`SIGINT`, the server shuts down gracefully — in-flight requests complete before the process exits.
+The server starts on `http://localhost:3000` (override with `PORT` env variable).
+
+### Step 5 — Check it's working
+
+Open a **new terminal** and run:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+You should see: `{"status":"ok"}`
+
+### Step 6 — Run the tests
+
+```bash
+npm test
+```
+
+You should see all **33 tests** pass across **2 test suites**.
+
+> On `SIGTERM`/`SIGINT`, the server shuts down gracefully — in-flight requests complete before the process exits.
 
 ## API Endpoints
 
@@ -160,6 +205,8 @@ All requests pass through:
 npm test
 ```
 
+You should see all **33 tests** pass across **2 test suites**:
+
 - **Unit tests** (`routes.unit.test.ts`) — mocked core library, tests route logic, validation, and error handling (18 tests)
 - **Integration tests** (`api.test.ts`) — real core library, end-to-end calculations via supertest (15 tests)
 
@@ -174,27 +221,33 @@ Requires a `DEPLOY_TRIGGER_TOKEN` secret (fine-grained PAT with Actions + Conten
 
 ## API Testing with Bruno
 
-A [Bruno](https://www.usebruno.com/) collection is included in `bruno/` for manual and interactive API testing.
+A [Bruno](https://www.usebruno.com/) collection is included in [`bruno/`](https://github.com/nurulizyansyaza/courier-service-api/tree/main/bruno) for manual and interactive API testing.
 
-### Setup
+### How to set up Bruno
 
-1. **Install Bruno** — download from [usebruno.com](https://www.usebruno.com/downloads) or `brew install bruno`
-2. **Open the collection** — in Bruno, click **Open Collection** and select the `bruno/` folder inside this repository
-3. **Select an environment** — click the environment dropdown (top right) and choose:
+1. **Download and install Bruno** from [usebruno.com/downloads](https://www.usebruno.com/downloads) (or run `brew install bruno` on macOS)
+2. **Open Bruno** on your machine
+3. **Click "Open Collection"** in Bruno
+4. **Navigate to** the `bruno/` folder inside this repository and select it
+5. **Select an environment** — click the environment dropdown at the **top right corner** and choose **Local**
 
-| Environment | Base URL | Use case |
-|-------------|----------|----------|
-| **Local** | `http://localhost:3000` | Local development (`npm run dev`) |
-| **Staging** | `https://d28gbmf77bx81u.cloudfront.net` | Staging (CloudFront → API Gateway → ECS) |
-| **Production** | `https://d31r5a2wvtwynh.cloudfront.net` | Production (CloudFront → API Gateway → ECS) |
+> **Important:** Make sure the API is running (`npm run dev`) before sending requests with the **Local** environment.
+
+### Environments
+
+| Environment | Base URL | When to use |
+|---|---|---|
+| **Local** | `http://localhost:3000` | When running the API locally with `npm run dev` |
+| **Staging** | `https://d28gbmf77bx81u.cloudfront.net` | Test against the staging deployment |
+| **Production** | `https://d31r5a2wvtwynh.cloudfront.net` | Test against the production deployment |
 
 > Staging and Production environments also include an `apiGatewayUrl` variable for testing the API Gateway endpoint directly, bypassing CloudFront.
 
-### Running requests
+### How to run requests
 
-- **Single request** — click any request and hit **Send** (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>)
-- **Run all** — right-click a folder (e.g. `cost`) and select **Run All Requests** to execute all requests with assertions
-- **Switch environment** — change the environment dropdown to test against a different target
+- **Run a single request** — click any request in the sidebar, then click **Send** (or press <kbd>Ctrl</kbd>+<kbd>Enter</kbd>)
+- **Run all requests in a folder** — right-click a folder (e.g. `cost`) and select **Run All Requests** to execute all requests with assertions
+- **Switch environment** — use the dropdown at the top right to test against Local, Staging or Production
 
 ### Collection structure
 
