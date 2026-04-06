@@ -193,7 +193,7 @@ All requests pass through:
 | Middleware | Purpose |
 |-----------|---------|
 | **Helmet** | Security headers (X-Content-Type-Options, X-Frame-Options, etc.) |
-| **CORS** | Restricts origins to `localhost:5173`, `localhost:3000`, and `HOMELAB_DOMAIN` env var |
+| **CORS** | Restricts origins to `localhost:5173`, `localhost:3000`, and `CLOUDFRONT_DOMAIN` env var |
 | **Rate Limiter** | Global: 100 requests / 15 min. Calculation endpoints: 30 requests / min |
 | **Morgan** | HTTP request logging |
 | **Body Limit** | JSON body capped at 10kb |
@@ -238,10 +238,10 @@ A [Bruno](https://www.usebruno.com/) collection is included in [`bruno/`](https:
 | Environment | Base URL | When to use |
 |---|---|---|
 | **Local** | `http://localhost:3000` | When running the API locally with `npm run dev` |
-| **Staging** | `https://nurulizyansyaza.com/staging/courier-service/api` | Test against the homelab staging deployment |
-| **Production** | `https://nurulizyansyaza.com/courier-service/api` | Test against the homelab production deployment |
+| **Staging** | `https://d28gbmf77bx81u.cloudfront.net` | Test against the staging deployment |
+| **Production** | `https://d31r5a2wvtwynh.cloudfront.net` | Test against the production deployment |
 
-> Staging and Production environments point to the homelab server where host Nginx reverse proxies API requests to the Docker containers.
+> Staging and Production environments also include an `apiGatewayUrl` variable for testing the API Gateway endpoint directly, bypassing CloudFront.
 
 ### How to run requests
 
@@ -255,8 +255,8 @@ A [Bruno](https://www.usebruno.com/) collection is included in [`bruno/`](https:
 bruno/
 ├── environments/
 │   ├── Local.bru               # localhost:3000
-│   ├── Staging.bru             # Homelab staging
-│   └── Production.bru          # Homelab production
+│   ├── Staging.bru             # CloudFront staging
+│   └── Production.bru          # CloudFront production
 ├── health/
 │   └── Health Check            # GET  /api/health
 ├── cost/
@@ -329,6 +329,6 @@ All tuneable values are centralised in `src/config.ts`:
 | `PORT` | `3000` | Server port (overridable via `PORT` env var) |
 | `GLOBAL_RATE_LIMIT` | 100 req / 15 min | Global rate limit |
 | `CALC_RATE_LIMIT` | 30 req / 1 min | Calculation endpoint rate limit |
-| `CORS_ORIGINS` | localhost:5173, :3000, homelab domain | Allowed CORS origins |
+| `CORS_ORIGINS` | localhost:5173, :3000, CloudFront | Allowed CORS origins |
 | `MAX_BODY_SIZE` | `10kb` | JSON body size limit |
 | `MAX_INPUT_LENGTH` | 10 000 chars | Max input string length |

@@ -14,7 +14,7 @@ import {
 // Security headers (protects from XSS, clickjacking, MIME sniffing, etc.)
 export const securityHeaders = helmet();
 
-// CORS — allow frontend dev server, same-origin, and configured CloudFront distribution
+// CORS — allow frontend dev server, same-origin, and configured production domain
 export const corsMiddleware = cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (curl, server-to-server)

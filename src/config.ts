@@ -19,8 +19,8 @@ const devOrigins = [
   'http://localhost:3000', // Same-origin
 ];
 
-export const ALLOWED_ORIGINS = process.env.CLOUDFRONT_DOMAIN
-  ? [...devOrigins, `https://${process.env.CLOUDFRONT_DOMAIN}`]
+export const ALLOWED_ORIGINS = process.env.PRODUCTION_DOMAIN
+  ? [...devOrigins, `https://${process.env.PRODUCTION_DOMAIN}`]
   : devOrigins;
 
 // ── Body Parser ──────────────────────────────────────────────────────
