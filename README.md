@@ -238,8 +238,8 @@ A [Bruno](https://www.usebruno.com/) collection is included in [`bruno/`](https:
 | Environment | Base URL | When to use |
 |---|---|---|
 | **Local** | `http://localhost:3000` | When running the API locally with `npm run dev` |
-| **Staging** | `https://nurulizyansyaza.com/staging/courier-service/api` | Test against the homelab staging deployment |
-| **Production** | `https://nurulizyansyaza.com/courier-service/api` | Test against the homelab production deployment |
+| **Staging** | `https://staging-courier-service.nurulizyansyaza.com/api` | Test against the homelab staging deployment |
+| **Production** | `https://courier-service.nurulizyansyaza.com/api` | Test against the homelab production deployment |
 
 > Staging and Production environments point to the homelab server where host Nginx reverse proxies API requests to the Docker containers.
 
